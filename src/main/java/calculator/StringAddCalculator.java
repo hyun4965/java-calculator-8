@@ -24,8 +24,18 @@ public class StringAddCalculator {
             String[] tokens = input.substring(index + 1).split(regex);
             int sum = 0;
             for (String token : tokens) {
-                sum += Integer.parseInt(token.trim());
-            }
+                if (token.isBlank()) {
+                    throw new IllegalArgumentException("빈 값이 있습니다.");
+                }
+                if (!token.matches("\\d+")) {
+                    throw new IllegalArgumentException("숫자가 아닌 값이 포함되었습니다: " + token);
+                }
+                int num = Integer.parseInt(token);
+
+                if (num < 0) {
+                    throw new IllegalArgumentException("음수는 허용되지 않습니다: " + num);
+                }
+                sum += num;            }
             return sum;
         }
 
