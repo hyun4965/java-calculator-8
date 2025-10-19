@@ -1,57 +1,60 @@
 package calculator;
 
 import java.util.regex.Pattern;
+import java.util.Arrays;
+import java.util.regex.Matcher;
 
 public class StringAddCalculator {
     private static final String DEFAULT_DELIMITER = "[,:]";
-    public int add(String input) {
-        //빈 문자는 0으로 반환.
-        if (input == null || input.isBlank()) {
+    private static final Pattern CUSTOM_DELIMITER_PATTERN = Pattern.compile("//(.)\n(.*)");
+
+    public int add(String text) {
+        // 입력 값 검증
+        if (isNullOrBlank(text)) {
             return 0;
         }
-        input = input.trim();
-        // '//' 로 시작  처리
-        if (input.startsWith("//")) {
-            int index = input.indexOf('\n');
-            int lineLen = 1;
+        String[] numbers = splitString(text);
 
-            if (index < 0) {
-                index = input.indexOf("\\n");
-                lineLen = 2;
-            }
-            if (index < 0) {
-                throw new IllegalArgumentException("형식이 잘못되었습니다.");
-            }
-            String delimiter = input.substring(2, index);
-            if (delimiter.length() != 1) {
-                throw new IllegalArgumentException("커스텀 구분자는 한 글자여야 합니다.");
-            }
-            String regex = Pattern.quote(delimiter);
-            String[] tokens = input.substring(index + lineLen).split(regex);
+        return sumNumbers(numbers);
+    }
 
-            int sum = 0;
-            for (String token : tokens) {
-                if (token.isBlank()) {
-                    throw new IllegalArgumentException("빈 값이 있습니다.");
-                }
-                if (!token.matches("\\d+")) {
-                    throw new IllegalArgumentException("숫자가 아닌 값이 포함되었습니다: " + token);
-                }
-                int num = Integer.parseInt(token);
+    //문자열이 비어있는지 여부
+    private boolean isNullOrBlank(String text) {
+        return text == null || text.isBlank();
+    }
 
-                if (num < 0) {
-                    throw new IllegalArgumentException("음수는 허용되지 않습니다: " + num);
-                }
-                sum += num;            }
-            return sum;
+    //구분자
+    private String[] splitString(String text) {
+        String normalizedText = text.replace("\\n", "\n");
+        Matcher matcher = CUSTOM_DELIMITER_PATTERN.matcher(normalizedText);
+
+        if (matcher.find()) {
+            String customDelimiter = matcher.group(1);
+            String numbers = matcher.group(2);
+            return numbers.split(Pattern.quote(customDelimiter));
         }
+        return text.split(DEFAULT_DELIMITER);
+    }
 
+    // 숫자 문자열 배열의 합계를 계산
+    private int sumNumbers(String[] numbers) {
+        return Arrays.stream(numbers)
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .mapToInt(this::parseAndValidate)
+                .sum();
+    }
 
-        String[] tokens = input.split(DEFAULT_DELIMITER); //DEFAULT_DELIMITER 기준으로 배열 저장
-
-        int sum = 0;
-        for (String token : tokens) {
-            sum += Integer.parseInt(token.trim());
+    // 문자열 하나를 정수로 변환하고 유효성을 검사
+    private int parseAndValidate(String numberStr) {
+        try {
+            int number = Integer.parseInt(numberStr);
+            if (number < 0) {
+                throw new IllegalArgumentException("음수는 허용되지 않습니다: " + number);
+            }
+            return number;
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("문자열에 숫자가 아닌 값이 포함되어 있습니다: " + numberStr);
         }
-        return sum;    }
+    }
 }
