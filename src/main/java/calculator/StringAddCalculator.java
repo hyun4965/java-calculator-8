@@ -13,6 +13,12 @@ public class StringAddCalculator {
         // '//' 로 시작  처리
         if (input.startsWith("//")) {
             int index = input.indexOf('\n');
+            int lineLen = 1;
+
+            if (index < 0) {
+                index = input.indexOf("\\n");
+                lineLen = 2;
+            }
             if (index < 0) {
                 throw new IllegalArgumentException("형식이 잘못되었습니다.");
             }
@@ -21,7 +27,8 @@ public class StringAddCalculator {
                 throw new IllegalArgumentException("커스텀 구분자는 한 글자여야 합니다.");
             }
             String regex = Pattern.quote(delimiter);
-            String[] tokens = input.substring(index + 1).split(regex);
+            String[] tokens = input.substring(index + lineLen).split(regex);
+
             int sum = 0;
             for (String token : tokens) {
                 if (token.isBlank()) {
